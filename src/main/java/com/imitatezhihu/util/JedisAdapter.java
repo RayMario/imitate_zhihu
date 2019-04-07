@@ -9,6 +9,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Transaction;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -102,6 +103,20 @@ public class JedisAdapter implements InitializingBean {
         }
         return 0;
     }
+    public long llen(String key) {
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            return jedis.llen(key);
+        } catch (Exception e) {
+            logger.error("发生异常" + e.getMessage());
+        } finally {
+            if (jedis != null) {
+                jedis.close();
+            }
+        }
+        return 0;
+    }
 
     public List<String> lrange(String key, int start, int end) {
         Jedis jedis = null;
@@ -131,7 +146,7 @@ public class JedisAdapter implements InitializingBean {
                 jedis.close();
             }
         }
-        return null;
+        return (new ArrayList<String>());
     }
 
     //ZSet：用来记录所有跟关注有关的服务。

@@ -22,6 +22,9 @@ public class FollowHandler implements EventHandler {
     @Autowired
     UserService userService;
 
+    //mq并发测试用编号i
+//    int i = 0;
+
     @Override
     public void doHandler(EventModel model) {
         Message message = new Message();
@@ -37,6 +40,8 @@ public class FollowHandler implements EventHandler {
             message.setContent("用户" + user.getName()
                     + "关注了你,http://127.0.0.1:8080/user/" + model.getActorId());
         }
+        //mq的并发测试用
+//        System.out.println("关注信息已处理"+Integer.toString(i++));
 
         messageService.addMessage(message);
     }
