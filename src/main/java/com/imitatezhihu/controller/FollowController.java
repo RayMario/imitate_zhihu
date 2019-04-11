@@ -4,16 +4,21 @@ import com.imitatezhihu.async.EventModel;
 import com.imitatezhihu.async.EventProducer;
 import com.imitatezhihu.async.EventType;
 import com.imitatezhihu.model.*;
+import com.imitatezhihu.rocketmq.Producer;
 import com.imitatezhihu.service.CommentService;
 import com.imitatezhihu.service.FollowService;
 import com.imitatezhihu.service.QuestionService;
 import com.imitatezhihu.service.UserService;
 import com.imitatezhihu.util.WendaUtil;
+import org.apache.rocketmq.client.exception.MQBrokerException;
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,18 +34,16 @@ public class FollowController {
     UserService userService;
     @Autowired
     HostHolder hostHolder;
-
     @Autowired
     FollowService followService;
-
     @Autowired
     EventProducer eventProducer;
-
     @Autowired
     QuestionService questionService;
-
     @Autowired
     CommentService commentService;
+    @Autowired
+    Producer producer;
     //关注用户
     @RequestMapping(path = {"/followUser"}, method = {RequestMethod.POST, RequestMethod.GET})
     @ResponseBody
@@ -53,9 +56,25 @@ public class FollowController {
         //follow信息写入到redis当中
         boolean ret = followService.follow(hostHolder.getUser().getId(),EntityType.ENTITY_USER,userId);
         //follow事件发布到消息队列当中
-        eventProducer.fireEvent(new EventModel(EventType.FOLLOW)
-                .setActorId(hostHolder.getUser().getId()).setEntityId(userId)
-                .setEntityType(EntityType.ENTITY_USER).setEntityOwnerId(userId));
+//        eventProducer.fireEvent(new EventModel(EventType.FOLLOW)
+//                .setActorId(hostHolder.getUser().getId()).setEntityId(userId)
+//                .setEntityType(EntityType.ENTITY_USER).setEntityOwnerId(userId));
+
+        try {
+            producer.send(new EventModel(EventType.FOLLOW)
+                    .setActorId(hostHolder.getUser().getId()).setEntityId(userId)
+                    .setEntityType(EntityType.ENTITY_USER).setEntityOwnerId(userId));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (RemotingException e) {
+            e.printStackTrace();
+        } catch (MQClientException e) {
+            e.printStackTrace();
+        } catch (MQBrokerException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         // redis返回关注的人数
         return WendaUtil.getJSONString(ret ? 0 : 1, String.valueOf(followService.getFolloweeCount(hostHolder.getUser().getId(), EntityType.ENTITY_USER)));
     }
@@ -92,9 +111,25 @@ public class FollowController {
         //redis更新该问题的关注队列
         boolean ret = followService.follow(hostHolder.getUser().getId(), EntityType.ENTITY_QUESTION, questionId);
         //发布事件到消息队列
-        eventProducer.fireEvent(new EventModel(EventType.FOLLOW)
-                .setActorId(hostHolder.getUser().getId()).setEntityId(questionId)
-                .setEntityType(EntityType.ENTITY_QUESTION).setEntityOwnerId(q.getUserId()));
+//        eventProducer.fireEvent(new EventModel(EventType.FOLLOW)
+//                .setActorId(hostHolder.getUser().getId()).setEntityId(questionId)
+//                .setEntityType(EntityType.ENTITY_QUESTION).setEntityOwnerId(q.getUserId()));
+        try {
+            producer.send(new EventModel(EventType.FOLLOW)
+                    .setActorId(hostHolder.getUser().getId()).setEntityId(questionId)
+                    .setEntityType(EntityType.ENTITY_QUESTION).setEntityOwnerId(q.getUserId()));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (RemotingException e) {
+            e.printStackTrace();
+        } catch (MQClientException e) {
+            e.printStackTrace();
+        } catch (MQBrokerException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
         //将关注信息以JSON串形式传递给前端
         Map<String, Object> info = new HashMap<>();
         info.put("headUrl", hostHolder.getUser().getHeadUrl());

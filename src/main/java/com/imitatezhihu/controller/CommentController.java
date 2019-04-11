@@ -6,6 +6,7 @@ import com.imitatezhihu.async.EventType;
 import com.imitatezhihu.model.Comment;
 import com.imitatezhihu.model.EntityType;
 import com.imitatezhihu.model.HostHolder;
+import com.imitatezhihu.rocketmq.Producer;
 import com.imitatezhihu.service.CommentService;
 import com.imitatezhihu.service.QuestionService;
 import com.imitatezhihu.util.WendaUtil;
@@ -30,7 +31,8 @@ public class CommentController {
     QuestionService questionService;
     @Autowired
     EventProducer eventProducer;
-
+    @Autowired
+    Producer producer;
 
     @RequestMapping(path = {"/addComment"}, method = {RequestMethod.POST})
     public String addComment(@RequestParam("questionId") int questionId,
@@ -54,8 +56,12 @@ public class CommentController {
             questionService.updateCommentCount(comment.getEntityId(),count);
 
             //评论进入事件队列
-            eventProducer.fireEvent(new EventModel(EventType.COMMENT).setActorId(hostHolder.getUser().getId())
-            .setEntityType(EntityType.ENTITY_QUESTION).setEntityId(questionId)
+//            eventProducer.fireEvent(new EventModel(EventType.COMMENT).setActorId(hostHolder.getUser().getId())
+//            .setEntityType(EntityType.ENTITY_QUESTION).setEntityId(questionId)
+//                    .setEntityOwnerId(questionService.selectById(questionId).getUserId()));
+
+            producer.send(new EventModel(EventType.COMMENT).setActorId(hostHolder.getUser().getId())
+                    .setEntityType(EntityType.ENTITY_QUESTION).setEntityId(questionId)
                     .setEntityOwnerId(questionService.selectById(questionId).getUserId()));
 
         }catch (Exception e){
