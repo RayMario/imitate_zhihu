@@ -104,7 +104,7 @@ public class EventConsumer implements InitializingBean, ApplicationContextAware 
     }
     public void cacheMq(){
         String key = RedisKeyUtil.getEventQueueKey();
-        while (eventCache.size()<100 && jedisAdapter.llen(key)>0){
+        while (eventCache.size()<=100 && jedisAdapter.llen(key)>0){
             List<String> events = jedisAdapter.brpop(0, key);
             for (String message : events) {
                 if (message.equals(key)) {
