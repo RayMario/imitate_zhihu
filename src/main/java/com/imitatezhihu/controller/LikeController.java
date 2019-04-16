@@ -46,25 +46,31 @@ public class LikeController {
 //        eventProducer.fireEvent(new EventModel(EventType.LIKE)
 //                .setActorId(hostHolder.getUser().getId()).setEntityId(commentId).setEntityOwnerId(comment.getUserId())
 //                .setEntityType(EntityType.ENTITY_COMMENT).setExts("questionId",String.valueOf(comment.getEntityId())));
+        if(likeService.getLikeStatus(hostHolder.getUser().getId(),EntityType.ENTITY_COMMENT,commentId) <= 0) {
+            try {
+                producer.send(new EventModel(EventType.LIKE)
+                        .setActorId(hostHolder.getUser().getId()).setEntityId(commentId).setEntityOwnerId(comment.getUserId())
+                        .setEntityType(EntityType.ENTITY_COMMENT).setExts("questionId", String.valueOf(comment.getEntityId())));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (RemotingException e) {
+                e.printStackTrace();
+            } catch (MQClientException e) {
+                e.printStackTrace();
+            } catch (MQBrokerException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            //读取redis赞set，返回当前点赞数量
+            long likeCount = likeService.like(hostHolder.getUser().getId(), EntityType.ENTITY_COMMENT, commentId);
+            return WendaUtil.getJSONString(0, String.valueOf(likeCount));
+        }else{
+            long likeCount = likeService.removeLike(hostHolder.getUser().getId(), EntityType.ENTITY_COMMENT, commentId);
 
-        try {
-            producer.send(new EventModel(EventType.LIKE)
-                    .setActorId(hostHolder.getUser().getId()).setEntityId(commentId).setEntityOwnerId(comment.getUserId())
-                    .setEntityType(EntityType.ENTITY_COMMENT).setExts("questionId",String.valueOf(comment.getEntityId())));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (RemotingException e) {
-            e.printStackTrace();
-        } catch (MQClientException e) {
-            e.printStackTrace();
-        } catch (MQBrokerException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            return WendaUtil.getJSONString(0, String.valueOf(likeCount));
         }
-        //读取redis赞set，返回当前点赞数量
-        long likeCount = likeService.like(hostHolder.getUser().getId(),EntityType.ENTITY_COMMENT,commentId);
-        return WendaUtil.getJSONString(0,String.valueOf(likeCount));
+
     }
 
     //点踩操作

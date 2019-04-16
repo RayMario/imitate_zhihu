@@ -46,4 +46,11 @@ public class LikeService {
 
         return jedisAdapter.scard(likeKey);
     }
+
+    //只是取消点赞
+    public long removeLike(int userId, int entityType, int entityId){
+        String likeKey = RedisKeyUtil.getLikeKey(entityType,entityId);
+        jedisAdapter.srem(likeKey, String.valueOf(userId));
+        return jedisAdapter.scard(likeKey);
+    }
 }

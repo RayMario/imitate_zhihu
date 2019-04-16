@@ -1,6 +1,5 @@
 package com.imitatezhihu.rocketmq;
 
-import com.alibaba.fastjson.JSON;
 import com.imitatezhihu.async.EventModel;
 import com.imitatezhihu.async.EventType;
 import com.imitatezhihu.model.User;
@@ -8,20 +7,17 @@ import com.imitatezhihu.service.MessageService;
 import com.imitatezhihu.service.UserService;
 import com.imitatezhihu.util.WendaUtil;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
-import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
-import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
-import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.UUID;
 
 @Component
-public class LikeConsumer implements Consumer,CommandLineRunner {
+public class LikeConsumer extends Consumer implements CommandLineRunner {
     @Autowired
     MessageService messageService;
     @Autowired
@@ -37,27 +33,24 @@ public class LikeConsumer implements Consumer,CommandLineRunner {
     @Override
     public void messageListener() {
         tags = String.valueOf(EventType.LIKE.getValue());
-        //消费者的组名
-        DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(consumerGroup);
-        //consumer.setConsumeThreadMin(5);
-        consumer.setInstanceName(String.valueOf(UUID.randomUUID()));
-        consumer.setNamesrvAddr(namesrvAddr);
+
         try {
-
-            consumer.subscribe("topic",tags);
-
-            consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
-            consumer.setConsumeMessageBatchMaxSize(32);
-
-            consumer.registerMessageListener((MessageListenerConcurrently) (msgs, context) -> {
-
-                for(Message msg:msgs){
-                    String str = new String(msg.getBody());
-                    EventModel eventModel = JSON.parseObject(str,EventModel.class);
-                    doHandle(eventModel);
-                }
-                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
-            });
+            DefaultMQPushConsumer consumer = consumerSetting(consumerGroup, namesrvAddr,"topic",tags,ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET
+                    ,MessageModel.BROADCASTING, 32);
+//            consumer.subscribe("topic",tags);
+//
+//            consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
+//            consumer.setConsumeMessageBatchMaxSize(32);
+//
+//            consumer.registerMessageListener((MessageListenerConcurrently) (msgs, context) -> {
+//
+//                for(Message msg:msgs){
+//                    String str = new String(msg.getBody());
+//                    EventModel eventModel = JSON.parseObject(str,EventModel.class);
+//                    doHandle(eventModel);
+//                }
+//                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+//            });
             consumer.start();
         } catch (Exception e) {
             e.printStackTrace();

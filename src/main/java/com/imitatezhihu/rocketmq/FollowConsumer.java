@@ -1,6 +1,5 @@
 package com.imitatezhihu.rocketmq;
 
-import com.alibaba.fastjson.JSON;
 import com.imitatezhihu.async.EventModel;
 import com.imitatezhihu.async.EventType;
 import com.imitatezhihu.model.EntityType;
@@ -9,10 +8,7 @@ import com.imitatezhihu.service.MessageService;
 import com.imitatezhihu.service.UserService;
 import com.imitatezhihu.util.WendaUtil;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
-import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
-import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
-import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,11 +16,10 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
-public class FollowConsumer implements Consumer,CommandLineRunner {
+public class FollowConsumer extends Consumer implements CommandLineRunner {
     /**
      * 消费者的组名
      */
@@ -48,30 +43,10 @@ public class FollowConsumer implements Consumer,CommandLineRunner {
     @Override
     public void messageListener() {
             tags = String.valueOf(EventType.FOLLOW.getValue());
-            //消费者的组名
-            DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(consumerGroup);
-            consumer.setInstanceName(String.valueOf(UUID.randomUUID()));
-            //指定NameServer地址，多个地址以 ; 隔开
-            consumer.setNamesrvAddr(namesrvAddr);
+
             try {
-
-                consumer.subscribe("topic",tags);
-                //consumer.setConsumeThreadMin(5);
-                consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
-                //分发模式
-                consumer.setMessageModel(MessageModel.BROADCASTING);
-                //控制每次读取的消息数目：底层是一个ArrayList做的缓存
-                consumer.setConsumeMessageBatchMaxSize(32);
-                //在此监听中消费信息，并返回消费的状态信息
-                consumer.registerMessageListener((MessageListenerConcurrently) (msgs, context) -> {
-
-                    for(Message msg:msgs){
-                        String str = new String(msg.getBody());
-                        EventModel eventModel = JSON.parseObject(str,EventModel.class);
-                        doHandle(eventModel);
-                    }
-                    return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
-                });
+                DefaultMQPushConsumer consumer = consumerSetting(consumerGroup, namesrvAddr,"topic",tags,ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET
+                ,MessageModel.BROADCASTING, 32);
                 consumer.start();
             } catch (Exception e) {
                 e.printStackTrace();
