@@ -36,10 +36,12 @@ public abstract class Consumer {
           consumer.registerMessageListener((MessageListenerConcurrently) (msgs, context) -> {
 
                for(Message msg:msgs){
+
                     String str = new String(msg.getBody());
                     EventModel eventModel = JSON.parseObject(str,EventModel.class);
                     doHandle(eventModel);
                }
+
                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
           });
           return consumer;

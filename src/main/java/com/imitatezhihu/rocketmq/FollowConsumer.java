@@ -45,7 +45,7 @@ public class FollowConsumer extends Consumer implements CommandLineRunner {
             tags = String.valueOf(EventType.FOLLOW.getValue());
 
             try {
-                DefaultMQPushConsumer consumer = consumerSetting(consumerGroup, namesrvAddr,"topic",tags,ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET
+                DefaultMQPushConsumer consumer = consumerSetting(consumerGroup, namesrvAddr,"topic",tags,ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET
                 ,MessageModel.BROADCASTING, 32);
                 consumer.start();
             } catch (Exception e) {

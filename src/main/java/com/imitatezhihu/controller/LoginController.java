@@ -34,11 +34,12 @@ public class LoginController {
     //注册页面，注册完了也要给一个ticket
     @RequestMapping(path = {"/reg"}, method = {RequestMethod.POST})
     public String reg(Model model,
-                        @RequestParam( name = "username",required = false) String username,
-                        @RequestParam( name = "password",required = false) String password,
-                        @RequestParam(value = "next",required = false) String next,
-                        HttpServletResponse response) {
+                      @RequestParam( name = "username",required = false) String username,
+                      @RequestParam( name = "password",required = false) String password,
+                      @RequestParam(value = "next",required = false) String next,
+                      HttpServletResponse response) {
         try {
+
             Map<String, String> map = userService.register(username, password);
             //处理Service传过来的map信息
             if(map.containsKey("ticket")){
@@ -77,6 +78,7 @@ public class LoginController {
                         @RequestParam(value = "remeberme",defaultValue = "false") boolean rememberme,
                         HttpServletResponse response){
         try{
+
             Map<String,Object> map = userService.login(username,password);
             /*如果用户已经有ticket，那么生成一个cookie，将Service层map中放入的ticket放进cookie当中
              并将cookie放入response当中，其中response是HttpServletResponse类的实例*/

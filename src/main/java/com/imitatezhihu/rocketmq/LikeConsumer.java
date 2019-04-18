@@ -35,7 +35,7 @@ public class LikeConsumer extends Consumer implements CommandLineRunner {
         tags = String.valueOf(EventType.LIKE.getValue());
 
         try {
-            DefaultMQPushConsumer consumer = consumerSetting(consumerGroup, namesrvAddr,"topic",tags,ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET
+            DefaultMQPushConsumer consumer = consumerSetting(consumerGroup, namesrvAddr,"topic",tags,ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET
                     ,MessageModel.BROADCASTING, 32);
 //            consumer.subscribe("topic",tags);
 //

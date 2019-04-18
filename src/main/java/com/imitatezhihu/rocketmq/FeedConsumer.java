@@ -73,7 +73,7 @@ public class FeedConsumer extends Consumer implements CommandLineRunner {
         +String.valueOf(EventType.COMMENT.getValue());
 
         try {
-            DefaultMQPushConsumer consumer = consumerSetting(consumerGroup, namesrvAddr,"topic",tags,ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET
+            DefaultMQPushConsumer consumer = consumerSetting(consumerGroup, namesrvAddr,"topic",tags,ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET
                     ,MessageModel.BROADCASTING, 32);
             consumer.start();
         } catch (Exception e) {
