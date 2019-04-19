@@ -1,5 +1,6 @@
 package com.imitatezhihu.controller;
 
+import com.imitatezhihu.Interceptor.SameUrlData;
 import com.imitatezhihu.async.EventModel;
 import com.imitatezhihu.async.EventProducer;
 import com.imitatezhihu.async.EventType;
@@ -98,6 +99,7 @@ public class FollowController {
     //关注问题
     @RequestMapping(path = {"/followQuestion"}, method = {RequestMethod.POST})
     @ResponseBody
+    @SameUrlData
     public String followQuestion(@RequestParam("questionId") int questionId) {
         //判断是否登录
         if (hostHolder.getUser() == null) {

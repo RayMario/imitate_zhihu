@@ -1,5 +1,6 @@
 package com.imitatezhihu.controller;
 
+import com.imitatezhihu.Interceptor.SameUrlData;
 import com.imitatezhihu.async.EventModel;
 import com.imitatezhihu.async.EventProducer;
 import com.imitatezhihu.async.EventType;
@@ -37,6 +38,7 @@ public class LikeController {
     //点赞操作
     @RequestMapping(path = {"/like"},method = {RequestMethod.POST})
     @ResponseBody
+    @SameUrlData
     public String like(@RequestParam("commentId") int commentId){
         if(hostHolder.getUser() == null){
             return WendaUtil.getJSONString(999);
