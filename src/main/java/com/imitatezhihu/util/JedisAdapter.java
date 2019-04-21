@@ -1,6 +1,7 @@
 package com.imitatezhihu.util;
 
 import com.imitatezhihu.controller.IndexController;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -8,9 +9,11 @@ import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Transaction;
+import redis.clients.jedis.params.SetParams;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 //包装Redis当中的各种数据结构与方法，主要将是Jedis线程池的获取与释放包装进去。
@@ -22,7 +25,13 @@ public class JedisAdapter implements InitializingBean {
     //通过重载afterPropertiesSet来实现jedis连接池的初始化
     @Override
     public void afterPropertiesSet() throws Exception {
-        jedisPool = new JedisPool("redis://localhost:6379/10");
+        if(jedisPool == null) {
+            GenericObjectPoolConfig config = new GenericObjectPoolConfig();
+            config.setMaxTotal(8);
+            config.setMaxIdle(8);
+            config.setTestOnBorrow(true);
+            jedisPool = new JedisPool(config,"127.0.0.1");
+        }
     }
 
     //统计点赞数只需要一个无序的set中的几个功能：添加/删除/统计成员数/判断自己是否是成员
@@ -278,6 +287,23 @@ public class JedisAdapter implements InitializingBean {
             logger.error("发生异常" + e.getMessage());
         } finally {
             if (jedis != null) {
+                jedis.close();
+            }
+        }
+        return null;
+    }
+    //设置带有过期时间的k-v对
+    public String set(String key,String value){
+        Jedis jedis = null;
+        try{
+            jedis = jedisPool.getResource();
+            int randomNum = new Random().nextInt(50)+500;
+            String result = jedis.set(key,value,new SetParams().nx().px(randomNum));
+            return result;
+        }catch (Exception e){
+            logger.error("发生异常" + e.getMessage());
+        }finally {
+            if(jedis != null){
                 jedis.close();
             }
         }

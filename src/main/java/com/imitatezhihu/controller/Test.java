@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Random;
 
 @Controller
 public class Test {
@@ -32,16 +33,16 @@ public class Test {
     QuestionService questionService;
     @Autowired
     Producer producer;
-//    @Autowired
-//    RocketMQTemplate rocketMQTemplate;
 
     @RequestMapping(path = {"/test1"},method = {RequestMethod.GET})
     @ResponseBody
     public String testMq(){
     //此页面用来测试消息队列
         Question q = questionService.selectById(1);
-        boolean ret = followService.follow(1, EntityType.ENTITY_QUESTION, 1);
-
+        Random random = new Random();
+        int i = random.nextInt(5000);
+        boolean ret = followService.follow(1, EntityType.ENTITY_QUESTION, i);
+        System.out.println("添加关注"+ret);
 //        eventProducer.fireEvent(new EventModel(EventType.FOLLOW)
 //                .setActorId(1).setEntityId(1)
 //                .setEntityType(EntityType.ENTITY_QUESTION).setEntityOwnerId(q.getUserId()));
@@ -60,7 +61,9 @@ public class Test {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        boolean ret1 = followService.unfollow(1, EntityType.ENTITY_QUESTION, 1);
+
+        boolean ret1 = followService.unfollow(1, EntityType.ENTITY_QUESTION, i);
+        System.out.println("取消关注"+ret1);
         return "end";
     }
 }
